@@ -13,7 +13,8 @@ A skeleton-based real-time online action recognition project, classifying and re
 
 ------
 ## Dependencies
- - Opencv > 3.4.1   
+ - python >= 3.5
+ - Opencv >= 3.4.1   
  - sklearn
  - tensorflow & keras
  - numpy & scipy 
@@ -30,6 +31,13 @@ A skeleton-based real-time online action recognition project, classifying and re
  **However, Please attention that the Action Dataset in this repo is collected along with the** ***VGG model*** **running**.
 
 
+------
+## Training with own dataset
+ - prepare data(actions) by running `main.py`, remember to ***uncomment the code of data collecting***, the origin data will be saved as a `.txt`.
+ - transforming the `.txt` to `.csv`, you can use EXCEL to do this.
+ - do the training with the `traing.py` in `Action/training/`, remember to ***change the action_enum***.
+ 
+ 
 ------
 ## Test result
 <p align="center">
