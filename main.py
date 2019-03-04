@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 # 导入相关模型
 estimator = load_pretrain_model('VGG_origin')
-action_classifier = load_action_premodel('Action/framewise_recognition.h5')
+action_classifier = load_action_premodel('Action/training/framewise_recognition.h5')
 
 # 参数初始化
 realtime_fps = '0.0000'
