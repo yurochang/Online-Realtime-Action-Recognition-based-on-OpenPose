@@ -28,8 +28,8 @@ cap = choose_run_mode(args)
 video_writer = set_video_writer(cap, write_fps=int(7.0))
 
 
-# # 保存关节数据的txt文件，用于训练过程(for training)
-# f = open('origin_data.txt', 'a+')
+# 保存关节数据的txt文件，用于训练过程(for training)
+f = open('origin_data.txt', 'a+')
 
 while cv.waitKey(1) < 0:
     has_frame, show = cap.read()
@@ -68,10 +68,10 @@ while cv.waitKey(1) < 0:
         cv.imshow('Action Recognition based on OpenPose', show)
         video_writer.write(show)
 
-        # # 采集数据，用于训练过程(for training)
-        # joints_norm_per_frame = np.array(pose[-1]).astype(np.str)
-        # f.write(' '.join(joints_norm_per_frame))
-        # f.write('\n')
+        # 采集数据，用于训练过程(for training)
+        joints_norm_per_frame = np.array(pose[-1]).astype(np.str)
+        f.write(' '.join(joints_norm_per_frame))
+        f.write('\n')
 
 video_writer.release()
 cap.release()
