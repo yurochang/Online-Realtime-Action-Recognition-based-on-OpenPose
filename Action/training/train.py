@@ -5,7 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from keras.utils import np_utils
 from keras.models import Sequential
-from keras.layers import Dense, Dropout
+from keras.layers import Dense, Dropout, TimeDistributed, Flatten, Activation, LSTM
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
 from keras.models import load_model
@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from keras.callbacks import Callback
 import itertools
 from sklearn.metrics import confusion_matrix
+import pdb
 
 # Callback class to visialize training progress
 class LossHistory(Callback):
@@ -89,30 +90,59 @@ def plot_confusion_matrix(cm, classes,
 
 
 # load data
-raw_data = pd.read_csv('data.csv', header=0)
+raw_data = pd.read_csv('newdata.csv', header=0)
 dataset = raw_data.values
 X = dataset[:, 0:36].astype(float)
 Y = dataset[:, 36]
+# pdb.set_trace()
+
+# 要按照分类整理清楚时间动作才行哦
+# LSTM mode
+X=X.reshape(X.shape[0]/5,5,X.shape[1])
+input_shape=(X.shape[1],X.shape[2])
+
+Y_=[]
+for y in range(len(Y)):
+    if y%5==0:
+        Y_.append(Y[y])
+Y=Y_
+
 
 # 将类别编码为数字
 encoder = LabelEncoder()
 encoder_Y = encoder.fit_transform(Y)
-print(encoder_Y[0], encoder_Y[900], encoder_Y[1800], encoder_Y[2700])
+# print(encoder_Y[0], encoder_Y[3000], encoder_Y[4000])
 # one hot 编码
 dummy_Y = np_utils.to_categorical(encoder_Y)
 
 # train test split
 X_train, X_test, Y_train, Y_test = train_test_split(X, dummy_Y, test_size=0.1, random_state=9)
 
-# build keras model
-model = Sequential()
-model.add(Dense(units=128, activation='relu'))
-model.add(BatchNormalization())
-model.add(Dense(units=64, activation='relu'))
-model.add(BatchNormalization())
-model.add(Dense(units=16, activation='relu'))
-model.add(BatchNormalization())
-model.add(Dense(units=4, activation='softmax'))
+# # build keras model
+# print('Build Basic Model:')
+# model = Sequential()
+# model.add(Dense(units=128, activation='relu'))
+# model.add(BatchNormalization())
+# model.add(Dense(units=64, activation='relu'))
+# model.add(BatchNormalization())
+# model.add(Dense(units=16, activation='relu'))
+# model.add(BatchNormalization())
+# model.add(Dense(units=3, activation='softmax'))
+
+print('Build Timedistributed-LSTM Model:')
+model=Sequential()
+model.add(TimeDistributed(Dense(128, activation='relu'),input_shape=input_shape))
+model.add(Dropout(0.1))
+model.add(TimeDistributed(Dense(128*2,activation='relu')))
+model.add(Dropout(0.1))
+model.add(TimeDistributed(Dense(128,activation='relu')))
+model.add(Dropout(0.1))
+model.add(TimeDistributed(Dense(128/2,activation='relu')))
+model.add(Dropout(0.1))
+model.add(TimeDistributed(Dense(128/4,activation='relu')))
+model.add(Dropout(0.1))
+model.add(LSTM(128/4, dropout=0.1, recurrent_dropout=0.1))
+model.add(Dense(3,activation='softmax'))
 
 # training
 his=LossHistory()
@@ -120,7 +150,6 @@ model.compile(loss='categorical_crossentropy', optimizer=Adam(0.0001), metrics=[
 model.fit(X_train, Y_train, batch_size=32, epochs=100, verbose=1, validation_data=(X_test, Y_test), callbacks=[his])
 his.loss_plot('epoch')
 model.summary() # print the network structure
-# tv.
 model.save('framewise_recognition.h5')
 
 # evaluate
@@ -135,7 +164,7 @@ cfm=confusion_matrix(np.argmax(Y_test,axis=1),np.argmax(Y_pred,axis=1))
 np.set_printoptions(precision=2)
 
 plt.figure()
-class_names=['squat','stand','walk','wave']
+class_names=['focusing','raising','sleeping']
 plot_confusion_matrix(cfm,classes=class_names,title='Confusion Matrix')
 plt.show()
 # # test
